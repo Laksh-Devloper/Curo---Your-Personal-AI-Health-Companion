@@ -1,0 +1,303 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Curo - Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.98/build/spline-viewer.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'space-dark': '#0A0A0A',
+                        'charcoal': '#1A1A1A',
+                        'deep-slate': '#2A2A2A',
+                        'light-grey': '#B0B0B0',
+                        'off-white': '#E0E0E0',
+                        'accent-purple': '#8B5CF6', 
+                        'accent-cyan': '#06B6D4',   
+                    },
+                    backgroundImage: {
+                        'gradient-dark-primary': 'linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%)',
+                        'gradient-dark-accent': 'linear-gradient(45deg, #8B5CF6, #06B6D4)', 
+                        'gradient-dark-red': 'linear-gradient(45deg, #EF4444, #DC2626)',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'subtle-glow': 'subtle-glow 3s ease-in-out infinite alternate', 
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #090517!important;
+            color: #E0E0E0; /* Default text color */
+        }
+        
+        /* New styling for the main content wrapper to use flexbox */
+        .main-content-wrapper {
+            display: flex; /* Use flexbox */
+            flex-direction: row; /* Arrange items in a row by default */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            min-height: 100vh; /* Take full viewport height */
+            width: 100%; /* Take full viewport width */
+            padding: 1rem; /* Add some padding */
+            box-sizing: border-box; /* Include padding in width/height */
+        }
+
+        /* Adjustments for the Profile Card to take up available space */
+        .profile-page {
+            flex-shrink: 0; /* Prevent the card from shrinking too much */
+            margin-right: 2rem; /* Space between card and Spline viewer */
+            max-width: 450px; /* Limit the max width of the card */
+            width: 100%; /* Allow it to be responsive */
+            position: relative; /* Needed for blob positioning */
+            z-index: 10; /* Ensure it's above the Spline viewer */
+        }
+
+        /* Styling for the Spline Viewer container */
+        #spline-container {
+            flex-grow: 1; /* Allow Spline viewer to take remaining space */
+            height: 80vh; /* Set a fixed height for the Spline scene */
+            max-width: 600px; /* Limit the max width of the Spline viewer */
+            width: 100%; /* Allow it to be responsive */
+            display: flex; /* Flexbox for centering Spline viewer content */
+            align-items: center;
+            justify-content: center;
+            z-index: 1; /* Below the profile card */
+        }
+
+        #spline-container spline-viewer {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Adjust to 'contain' if your Spline scene has transparent areas you want to see */
+        }
+        
+        .glass-card {
+            backdrop-filter: blur(20px);
+            background: rgba(26, 26, 26, 0.6);
+            border: 1px solid rgba(70, 70, 70, 0.3);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        
+        .glass-input {
+            background: rgba(40, 40, 40, 0.7);
+            color: #E0E0E0;
+            border: 1px solid rgba(70, 70, 70, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-input::placeholder {
+            color: #B0B0B0;
+        }
+        .glass-input:focus {
+            background: rgba(50, 50, 50, 0.9);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            color: #E0E0E0;
+        }
+        
+        .hover-glow:hover {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.4);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-image {
+            background: linear-gradient(45deg, #8B5CF6, #06B6D4);
+            border: 4px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.4);
+        }
+        .profile-image:hover {
+            box-shadow: 0 0 35px rgba(6, 182, 212, 0.6);
+        }
+
+        .back-button-icon {
+            color: #B0B0B0;
+        }
+        .back-button-icon:hover {
+            color: #06B6D4;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar-track {
+            background: #1A1A1A;
+        }
+        .scrollbar-hide::-webkit-scrollbar-thumb {
+            background-color: #4A4A4A;
+            border-radius: 10px;
+            border: 3px solid #1A1A1A;
+        }
+        .scrollbar-hide::-webkit-scrollbar-thumb:hover {
+            background-color: #5A5A5A;
+        }
+
+        /* Responsive adjustments for mobile/smaller screens */
+        @media (max-width: 1024px) { 
+            .main-content-wrapper {
+                flex-direction: column; /* Stack vertically on smaller screens */
+            }
+            .profile-page {
+                margin-right: 0; /* Remove right margin when stacked */
+                margin-bottom: 2rem; /* Add space below the card */
+            }
+            #spline-container {
+                height: 50vh; /* Adjust height for stacking */
+                max-width: 100%; /* Allow spline to take full width */
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-hidden bg-dark text-off-white">
+
+    <a href="{% url 'index' %}" class="absolute top-4 left-4 glass-card rounded-full p-3 hover-glow transition-all duration-300 group z-20">
+        <i class="fas fa-arrow-left back-button-icon group-hover:text-accent-cyan"></i>
+    </a>
+
+    <div class="main-content-wrapper">
+        
+        <div class="profile-page animate__animated animate__fadeIn glass-card p-8 rounded-3xl shadow-2xl overflow-hidden floating">
+            
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-accent-purple rounded-full blur-xl opacity-30 mix-blend-screen"></div>
+            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-accent-cyan rounded-full blur-xl opacity-30 mix-blend-screen"></div>
+
+            <h2 class="text-3xl font-bold text-off-white mb-6 text-center glow-text">Profile</h2>
+            
+            <div class="space-y-6 max-h-[70vh] overflow-y-auto pr-2 scrollbar-hide">
+
+                <div class="profile-image w-28 h-28 rounded-full flex items-center justify-center text-white text-3xl mx-auto animate__animated animate__fadeIn shadow-xl cursor-pointer hover-glow transition-all duration-300">
+                    <i class="fas fa-user"></i>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-light-grey">Username</label>
+                    <p id="profile-username" class="p-3 glass-input rounded-xl text-off-white font-medium">{{ user.username }}</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-light-grey">Current Email</label>
+                    <p id="profile-current-email" class="p-3 glass-input rounded-xl text-off-white font-medium">{{ user.email }}</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-light-grey">Phone Number</label>
+                    <p id="profile-phone" class="p-3 glass-input rounded-xl text-off-white font-medium">{{ user.phone_number|default:"Not provided" }}</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-light-grey">Joined Since</label>
+                    <p class="p-3 glass-input rounded-xl text-off-white font-medium">{{ user.date_joined|date:"F d, Y" }}</p>
+                </div>
+
+                <div class="space-y-4 pt-4">
+                    <a href="{% url 'logout' %}">
+                        <button id="logout" class="w-full bg-gradient-dark-red text-white py-3 rounded-xl hover:opacity-90 transition-all duration-300 animate__animated animate__pulse font-semibold shadow-lg hover-glow">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </a>
+                    <a href="{% url 'index' %}">
+                        <button class="w-full bg-deep-slate text-off-white py-3 rounded-xl hover:bg-charcoal transition-all duration-300 font-semibold shadow-lg hover-glow">
+                            <i class="fas fa-home mr-2"></i>Back to Home
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="spline-container">
+<spline-viewer loading-anim-type="spinner-small-light" url="https://prod.spline.design/dTxpmFCOXhSlaznW/scene.splinecode"></spline-viewer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileImage = document.querySelector('.profile-image');
+            profileImage.addEventListener('click', () => {
+                profileImage.classList.add('animate__flip');
+                setTimeout(() => profileImage.classList.remove('animate__flip'), 1000);
+            });
+
+            document.getElementById('logout')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                fetch("{% url 'logout' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = "{% url 'login' %}";
+                    } else {
+                        alert('Error logging out: ' + data.error);
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while logging out.');
+                });
+            });
+        });
+
+        // Custom scrollbar styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar-track {
+                background: #1A1A1A;
+            }
+            .scrollbar-hide::-webkit-scrollbar-thumb {
+                background-color: #4A4A4A;
+                border-radius: 10px;
+                border: 3px solid #1A1A1A;
+            }
+            .scrollbar-hide::-webkit-scrollbar-thumb:hover {
+                background-color: #5A5A5A;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

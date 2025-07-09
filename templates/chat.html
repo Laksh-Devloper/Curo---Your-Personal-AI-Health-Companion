@@ -1,0 +1,1170 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curo - Health Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="{% static 'health_assistant/css/styles.css' %}" onerror="console.error('styles.css failed to load')">
+    <style>
+        /* Custom CSS for dark theme */
+        body {
+            background: linear-gradient(135deg, #1a1a1a, #333333); /* Dark, subtle gradient */
+            color: #f02323; /* Light text for dark background */
+            overflow: hidden; /* Prevent body scroll when main content handles it */
+        }
+
+        /* Full-screen adjustments */
+        #chat-page {
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            flex-grow: 1; /* Allow it to grow to fill space */
+        }
+
+        .glass-box { /* Applied only to sidebar now */
+            background: rgba(40, 40, 40, 0.6); /* Darker, more opaque glass */
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); /* More pronounced shadow for depth */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(60, 60, 60, 0.8); /* Darker border */
+            transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .glass-box:hover {
+            transform: perspective(1000px) rotateY(0.5deg) rotateX(0.5deg); /* Even subtler rotation on hover */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-bubble-user {
+            background: linear-gradient(45deg, #4f46e5, #6d28d9); /* Darker indigo-purple for user */
+            color: white;
+            border-radius: 10px 10px 2px 10px; /* Slightly smaller bubble corners */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            transform: translateZ(0);
+            transition: transform 0.2s ease-out;
+        }
+
+        .chat-bubble-user:hover {
+            transform: translateZ(8px) translateY(-1px);
+            box-shadow: 0 3px 9px rgba(0, 0, 0, 0.35);
+        }
+
+        .chat-bubble-curo {
+            background: rgba(255, 255, 255, 0.15); /* Translucent light background for Curo */
+            color: #e0e0e0; /* Light text */
+            border-radius: 10px 10px 10px 2px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: translateZ(0);
+            transition: transform 0.2s ease-out;
+        }
+
+        .chat-bubble-curo:hover {
+            transform: translateZ(8px) translateY(-1px);
+            box-shadow: 0 3px 9px rgba(0, 0, 0, 0.25);
+        }
+
+        .input-field-dark {
+            background: rgba(60, 60, 60, 0.8); /* Darker input background */
+            border: 1px solid rgba(80, 80, 80, 0.8);
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .input-field-dark::placeholder {
+            color: #a0a0a0; /* Lighter placeholder text */
+        }
+
+        .input-field-dark:focus {
+            background: rgba(70, 70, 70, 0.9);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.4); /* Indigo focus ring */
+        }
+
+        .action-button-dark {
+            background: linear-gradient(45deg, #4f46e5, #6d28d9); /* Consistent gradient for buttons */
+            color: white;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .action-button-dark::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            z-index: -1;
+        }
+
+        .action-button-dark:hover::before {
+            width: 150%;
+            height: 150%;
+            opacity: 1;
+        }
+
+        .action-button-dark:hover {
+            transform: translateY(-1px); /* Slight lift on hover */
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.6);
+        }
+
+        .action-button-dark.active {
+            background: linear-gradient(45deg, #3730a3, #5b21b6); /* Darker gradient for active state */
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3); /* Inset shadow for pressed look */
+            transform: translateY(1px);
+        }
+
+        /* Styles for the new "Example Input" section */
+        #example-input {
+            background: rgba(255, 255, 255, 0.05); /* Very subtle background for example text */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #b0b0b0; /* Lighter grey text */
+        }
+        #example-text {
+            color: #818cf8; /* Lighter indigo for example text */
+        }
+
+        .history-item-dark {
+            color: #d0d0d0; /* Light grey for history items */
+            background: rgba(255, 255, 255, 0.05); /* Subtle background */
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .history-item-dark:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(3px); /* Slide slightly on hover */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-item-dark .font-medium {
+            color: #a78bfa; /* Slightly brighter for timestamp */
+        }
+
+        /* Specific style for the loading ellipsis */
+        .animate-pulse-dots {
+            animation: pulse-dots 1.4s infinite;
+        }
+
+        @keyframes pulse-dots {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+
+        /* Sidebar specific styles */
+        #history-panel {
+            position: fixed; /* Stick to the left */
+            left: 0;
+            top: 0;
+            height: 100vh; /* Full viewport height */
+            width: 256px; /* Fixed width for sidebar */
+            transform: translateX(0); /* Default: visible */
+            transition: transform 0.3s ease-in-out;
+            z-index: 15; /* Above main content */
+            border-right: 1px solid rgba(60, 60, 60, 0.8); /* Separator */
+            border-radius: 0; /* No rounded corners */
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+            display: flex; /* Use flex to arrange content vertically */
+            flex-direction: column;
+            padding: 1rem; /* Adjust padding for top/bottom/sides */
+        }
+
+        #history-panel.collapsed {
+            transform: translateX(-100%); /* Collapse by sliding left */
+        }
+
+        /* Toggle button for sidebar */
+        #sidebar-toggle {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20; /* Above sidebar */
+            background: linear-gradient(90deg, #4f46e5, #6d28d9);
+            color: white;
+            padding: 8px 10px;
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+            transition: left 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        #sidebar-toggle.collapsed {
+            left: 0; /* Stays at 0 when collapsed */
+        }
+
+        #sidebar-toggle .fa-chevron-left {
+            display: block;
+        }
+        #sidebar-toggle .fa-chevron-right {
+            display: none;
+        }
+        #sidebar-toggle.collapsed .fa-chevron-left {
+            display: none;
+        }
+        #sidebar-toggle.collapsed .fa-chevron-right {
+            display: block;
+        }
+
+        /* Main content area adjustment */
+        .chat-main-content {
+            margin-left: 256px; /* Space for visible sidebar */
+            transition: margin-left 0.3s ease-in-out;
+            width: calc(100% - 256px); /* Adjust width when sidebar is visible */
+            height: 100vh; /* Full viewport height */
+            padding: 0; /* REMOVED overall padding from chat-main-content */
+            display: flex; /* Make it a flex container */
+            flex-direction: column; /* Stack children vertically */
+        }
+
+        .chat-main-content.sidebar-collapsed {
+            margin-left: 0; /* No margin when collapsed */
+            width: 100%; /* Full width when collapsed */
+        }
+
+        /* Adjust chat-container within main content to fill full height */
+    .chat-container {
+        height: 100%;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        /* Ensure no extra space at the very bottom of this container */
+        justify-content: flex-end; /* Pushes content to the bottom, ensuring input area is flush */
+    }
+    .chat-window {
+        background-color: #090517;
+        padding: 1.5rem;
+        overflow-y: auto;
+        flex-grow: 1; /* This is crucial for it to expand and fill space */
+        flex-shrink: 1; /* Allows it to shrink if needed */
+        min-height: 0; /* Prevents flex item from overflowing its container */
+    }
+
+        /* Chat input area */
+    .chat-input-area {
+        padding: 1.5rem; /* Keep this padding for internal spacing */
+        background: rgba(40, 40, 40, 0.6);
+        border-top: 1px solid rgba(60, 60, 60, 0.8);
+        box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        /* Add these to ensure it's a fixed size at the bottom */
+        flex-shrink: 0; /* Prevents it from shrinking */
+        position: relative; /* Essential for containing anything absolutely positioned inside if needed */
+    }
+    @media (max-width: 768px) {
+        .chat-input-area {
+            padding: 1rem; /* Slightly less padding on mobile for input area */
+        }
+    }
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            #history-panel {
+                width: 100%; /* Full width on smaller screens when active */
+                top: 0;
+                height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+                border-right: none;
+                z-index: 30; /* Higher z-index for mobile overlay */
+            }
+            #history-panel.collapsed {
+                transform: translateX(-100%);
+            }
+            #sidebar-toggle {
+                top: 10px; /* Move toggle button to top on mobile */
+                transform: none;
+                padding: 6px 8px;
+                font-size: 0.9em;
+                z-index: 40; /* Ensure toggle is always visible */
+            }
+            #sidebar-toggle.collapsed {
+                    left: 0;
+            }
+            .chat-main-content {
+                margin-left: 0; /* Always 0 on mobile, sidebar acts as overlay */
+                width: 100%;
+                padding: 0; /* No overall padding on mobile either */
+            }
+            .chat-container {
+                height: 100%; /* Full height on mobile */
+                padding: 0; /* No padding here either */
+            }
+            .chat-window {
+                padding: 1rem; /* Slightly less padding on mobile for chat bubbles */
+            }
+            .chat-input-area {
+                padding: 1rem; /* Slightly less padding on mobile for input area */
+            }
+        }
+
+        #chat-form {
+    margin-bottom: 0; /* Remove any default bottom margin from the form */
+}
+
+        /* To-Do List specific styles */
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background 0.2s ease;
+        }
+
+        .todo-item.completed {
+            opacity: 0.7;
+            text-decoration: line-through;
+            color: #9ca3af; /* Tailwind gray-400 */
+        }
+
+        .todo-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .todo-checkbox {
+            margin-right: 0.75rem;
+            accent-color: #6d28d9; /* Purple */
+            width: 1.25rem;
+            height: 1.25rem;
+            cursor: pointer;
+        }
+
+        .todo-text {
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
+        .todo-date {
+            font-size: 0.75rem;
+            color: #a0a0a0;
+            margin-left: 0.5rem;
+        }
+
+        /* --- Modal Styles for Health Report --- */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    padding-top: 60px; /* Location of the box */
+}
+
+
+
+.modal-content {
+    background-color: #9a91a1;
+    margin: 5% auto; /* 5% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more responsive, e.g., 80% on small screens, 50% on large */
+    max-width: 600px; /* Maximum width */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    position: relative;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.modal-content .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.modal-content input[type="number"],
+.modal-content select {
+    width: calc(100% - 22px); /* Account for padding and border */
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.modal-content .submit-button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block; /* Make button take full width */
+    width: 100%;
+    margin-top: 20px;
+}
+
+.modal-content .submit-button:hover {
+    background-color: #45a049;
+}
+
+/* Style for the new action button on the main page */
+.action-button {
+    background-color: #007bff; /* Blue */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px; /* Space it from the chat form */
+    display: block; /* Make it take its own line */
+    width: 100%; /* Or adjust as needed */
+    box-sizing: border-box;
+}
+
+.action-button:hover {
+    background-color: #0056b3;
+}
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-[Poppins]">
+    <div id="fallback-content" class="flex items-center justify-center min-h-screen bg-gray-900 text-gray-400">
+        Loading chat... If this persists, check console for errors.
+    </div>
+
+    <div id="chat-page" class="chat-page flex flex-col min-h-screen">
+        <button id="sidebar-toggle" class="z-30">
+            <i class="fas fa-chevron-left"></i>
+            <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <main class="flex flex-1">
+            <div id="history-panel" class="glass-box p-5 z-15 flex flex-col"> {# Added flex-col to enable scrolling for history/todos #}
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-700">
+                    <h3 class="text-lg font-bold text-gray-100">
+                        <i class="fas fa-history mr-2 text-indigo-400"></i> Chat History
+                    </h3>
+                    <a href="{% url 'index' %}" class="action-button-dark px-3 py-1 rounded-md text-xs font-semibold flex items-center">
+                        <i class="fas fa-arrow-left mr-1"></i> Back
+                    </a>
+                </div>
+                <ul id="history-list" class="space-y-2 overflow-y-auto mb-4 flex-grow"> {# Added flex-grow and overflow-y-auto #}
+                    {% for chat in chat_history %}
+                        <li class="history-item-dark p-2 rounded-lg cursor-pointer flex items-center justify-between">
+                            <span class="font-medium text-xs">{{ chat.timestamp|date:"Y-m-d H:i" }}</span>
+                            <span class="truncate text-sm ml-2">{{ chat.message|truncatechars:20 }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="text-gray-500 italic p-2 text-sm">No history yet.</li>
+                    {% endfor %}
+                </ul>
+                <button id="new-chat" class="action-button-dark w-full py-2 rounded-lg text-sm font-bold flex items-center justify-center mb-6"> {# Added mb-6 for spacing #}
+                    <i class="fas fa-plus-circle mr-2"></i> New Chat
+                </button>
+
+                {# --- New To-Do List Section --- #}
+                <div id="todo-list-panel" class="border-t border-gray-700 pt-4 flex-grow flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-100">
+                            <i class="fas fa-clipboard-list mr-2 text-green-400"></i> To-Do List
+                        </h3>
+                          <button id="addTodoPromptBtn" class="add-todo-btn" title="Click to add a new to-do via chat">
+            <i class="fas fa-plus"></i> Add New
+        </button>
+                    </div>
+                    <ul id="todo-list" class="space-y-2 overflow-y-auto flex-grow">
+                        {# To-do items will be rendered here by JavaScript #}
+                    </ul>
+                    <button id="clear-completed-todos" class="action-button-dark w-full mt-4 py-2 rounded-lg text-xs font-semibold flex items-center justify-center">
+                        <i class="fas fa-check-double mr-2"></i> Clear Completed
+                    </button>
+                </div>
+                {# --- End To-Do List Section --- #}
+
+            </div>
+
+            <div id="chat-main-content" class="flex flex-col flex-1 chat-main-content">
+                <div class="chat-container flex flex-col min-h-screen relative z-10 overflow-hidden">
+                    <div class="flex-1 overflow-y-auto chat-window space-y-4" id="chat-window">
+                        {% for message in chat_history %}
+                            <div class="flex {% if message.message %}justify-end{% else %}justify-start{% endif %}"> {# Check if message exists to determine user bubble #}
+                                <div class="{% if message.message %}chat-bubble-user ml-auto{% else %}chat-bubble-curo mr-auto{% endif %} p-3 max-w-md text-sm">
+                                    {% if message.message %}
+                                        <p class="font-medium mb-0.5 p-3">{{ message.message }}</p>
+                                    {% endif %}
+                                    {% if message.bot_response %}
+                                        <p class="text-xs {% if message.message %}text-indigo-100{% else %}text-gray-400{% endif %} mt-1">{{ message.bot_response }}</p>
+                                    {% endif %}
+                                    <small class="block text-right text-xs {% if message.message %}text-indigo-200{% else %}text-gray-500{% endif %} mt-1 pr-3 pb-3">
+                                        <span class="pl-3">{{ message.timestamp|date:"Y-m-d H:i" }}</span>
+                                    </small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-400 text-center text-sm italic mt-8 animate__animated animate__fadeIn animate__delay-1s">
+                                <i class="fas fa-robot text-indigo-400 mr-2"></i> Hello! How can I assist your health today?
+                            </p>
+                        {% endfor %}
+                    </div>
+                    <div class="chat-input-area">
+                        <form id="chat-form" method="POST" action="{% url 'chat_room' %}">
+                            {% csrf_token %}
+                            <div class="flex flex-wrap gap-2 mb-3 justify-center">
+                                <button type="button" data-mode="general" class="ai-mode-button action-button-dark px-4 py-2 rounded-lg text-xs font-semibold active">General Health</button>
+                                <button type="button" data-mode="symptoms" class="ai-mode-button action-button-dark px-4 py-2 rounded-lg text-xs font-semibold">Symptoms Predictor</button>
+                                <button type="button" data-mode="mental" class="ai-mode-button action-button-dark px-4 py-2 rounded-lg text-xs font-semibold">Mental Health Assistant</button>
+                                <button type="button" data-mode="disease" class="ai-mode-button action-button-dark px-4 py-2 rounded-lg text-xs font-semibold">Disease Predictor</button>
+                                <button type="button" id = "generate-report-button" class="action-button action-button-dark px-4 py-2 rounded-lg text-xs font-semibold">Generate Health Report</button>
+                                <input type="hidden" name="ai-mode" id="hidden-ai-mode" value="{{ ai_mode }}">
+                            </div>
+
+                            <div id="disease-type-buttons" class="flex flex-wrap gap-2 mb-3 justify-center {% if ai_mode != 'disease' %}hidden{% endif %}">
+                                <button type="button" data-disease="diabetes" class="disease-type-button action-button-dark px-4 py-2 rounded-lg text-xs font-semibold {% if disease_type == 'diabetes' %}active{% endif %}">Diabetes</button>
+                                <button type="button" data-disease="heart" class="disease-type-button action-button-dark px-4 py-2 rounded-lg text-xs font-semibold {% if disease_type == 'heart' %}active{% endif %}">Heart</button>
+                                <input type="hidden" name="disease-type" id="hidden-disease-type" value="{{ disease_type }}">
+                            </div>
+
+                            <div id="example-input" class="text-xs text-gray-400 mb-3 bg-gray-800 p-2 rounded-lg border border-gray-700 hidden animate__animated animate__fadeInUp animate__faster">
+                                Example input: <span id="example-text" class="font-mono text-indigo-300 text-wrap break-all"></span>
+                            </div>
+
+                            <div class="flex space-x-2">
+                                <input type="text" id = "chat_input" name="message" class="input-field-dark flex-1 p-2 rounded-lg focus:outline-none text-sm" placeholder="Ask a general health question..." required>
+                                <button type="submit" class="action-button-dark px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center">
+                                    Send <i class="fas fa-paper-plane ml-2"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="health-report-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Health Report Questions</h2>
+        <form id="health-report-form">
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input style="color: black;" type="number" id="age" name="age" required min="1" max="120">
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender:</label>
+                <select style="color: black;" id="gender" name="gender" required>
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="height_cm">Height (cm):</label>
+                <input style="color: black;" type="number" id="height_cm" name="height_cm" required min="50" max="250">
+            </div>
+
+            <div class="form-group">
+                <label for="weight_kg">Weight (kg):</label>
+                <input style="color: black;" type="number" id="weight_kg" name="weight_kg" required min="20" max="300">
+            </div>
+
+            <div class="form-group">
+                <label for="exercise_frequency">Exercise Frequency:</label>
+                <select style="color: black;" id="exercise_frequency" name="exercise_frequency" required>
+                    <option value="">Select</option>
+                    <option value="daily">Daily</option>
+                    <option value="3-4_times_week">3-4 times a week</option>
+                    <option value="1-2_times_week">1-2 times a week</option>
+                    <option value="rarely">Rarely/Never</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="diet_quality">Diet Quality:</label>
+                <select style="color: black;" id="diet_quality" name="diet_quality" required>
+                    <option value="">Select</option>
+                    <option value="excellent">Excellent (balanced, whole foods)</option>
+                    <option value="good">Good (mostly healthy, some treats)</option>
+                    <option value="average">Average (mix of healthy and unhealthy)</option>
+                    <option value="poor">Poor (mostly unhealthy/processed)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="smoking_status">Smoking Status:</label>
+                <select style="color: black;" id="smoking_status" name="smoking_status" required>
+                    <option value="">Select</option>
+                    <option value="never">Never Smoked</option>
+                    <option value="former">Former Smoker</option>
+                    <option value="current">Current Smoker</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="alcohol_consumption">Alcohol Consumption:</label>
+                <select style="color: black;" id="alcohol_consumption" name="alcohol_consumption" required>
+                    <option value="">Select</option>
+                    <option value="never">Never</option>
+                    <option value="rarely">Rarely</option>
+                    <option value="moderate">Moderate (1-2 drinks/day)</option>
+                    <option value="heavy">Heavy (3+ drinks/day)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-button">Generate Report</button>
+        </form>
+    </div>
+</div>
+    <script src="{% static 'health_assistant/js/script.js' %}" onerror="console.error('script.js failed to load')"></script>
+    <script>
+
+        function appendMessage(sender, message, type) {
+    const chatWindow = document.getElementById('chat-window');
+    const now = new Date();
+    const timestamp = now.getFullYear() + '-' +
+                      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                      String(now.getDate()).padStart(2, '0') + ' ' +
+                      String(now.getHours()).padStart(2, '0') + ':' +
+                      String(now.getMinutes()).padStart(2, '0');
+
+    let messageHtml = '';
+    if (type === 'bot') {
+        messageHtml = `
+            <div class="flex justify-start">
+                <div class="chat-bubble-curo mr-auto animate__animated animate__fadeInLeft animate__faster">
+                    <p class="font-medium mb-0.5 p-3">${sender}: ${message}</p>
+                    <small class="block text-right text-xs text-gray-500 mt-1 pr-3 pb-3">
+                        <span class="pl-3">${timestamp}</span>
+                    </small>
+                </div>
+            </div>
+        `;
+    } else if (type === 'user') {
+        messageHtml = `
+            <div class="flex justify-end">
+                <div class="chat-bubble-user ml-auto animate__animated animate__fadeInRight animate__faster">
+                    <p class="font-medium mb-0.5 p-3">${message}</p>
+                    <small class="block text-right text-xs text-indigo-200 mt-1 pr-3 pb-3">
+                        <span class="pl-3">${timestamp}</span>
+                    </small>
+                </div>
+            </div>
+        `;
+    }
+
+    chatWindow.innerHTML += messageHtml;
+    scrollToBottom(); // Assuming scrollToBottom is defined elsewhere and works
+}
+
+        // Get the modal, button, and close elements
+const reportModal = document.getElementById('health-report-modal');
+const generateReportBtn = document.getElementById('generate-report-button');
+const closeButton = document.querySelector('#health-report-modal .close-button'); // Selects the close button within the modal
+
+// When the user clicks the button, open the modal
+generateReportBtn.onclick = function() {
+    reportModal.style.display = 'block';
+}
+
+// When the user clicks on <span> (x), close the modal
+closeButton.onclick = function() {
+    reportModal.style.display = 'none';
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == reportModal) {
+        reportModal.style.display = 'none';
+    }
+}
+
+// You'll add the form submission logic here in the next step
+  const healthReportForm = document.getElementById('health-report-form');
+    healthReportForm.addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        reportModal.style.display = 'none'; // Close the modal immediately
+
+        // Show a "Generating report..." message in chat
+        appendMessage('Curo', 'Generating your personalized health report...', 'bot');
+
+        // --- THIS IS THE NEW / CORRECTED PART ---
+
+        // 1. Collect form data
+        const formData = new FormData(healthReportForm); // Automatically collects all input values by their 'name' attribute
+
+        try {
+            // 2. Send data to Django backend via AJAX (fetch API)
+            const response = await fetch("{% url 'generate_health_report' %}", {
+                method: 'POST',
+                body: formData, // FormData is great for sending form data directly
+                // Include CSRF token if you've removed @csrf_exempt from your view (recommended for production)
+                // headers: {
+                //     'X-CSRFToken': '{{ csrf_token }}'
+                // },
+            });
+
+            // 3. Parse the JSON response from Django
+            const data = await response.json();
+
+            // 4. Handle the response
+            if (data.status === 'success') {
+                appendMessage('Curo', 'Here is your personalized health report:', 'bot');
+                // Replace newlines with <br> for proper HTML display in the chat
+                appendMessage('AI Report', data.report.replace(/\n/g, '<br>'), 'bot');
+            } else {
+                appendMessage('Curo', `Error generating report: ${data.message}`, 'bot');
+            }
+
+        } catch (error) {
+            console.error('Error submitting health report form:', error);
+            appendMessage('Curo', 'Sorry, something went wrong while trying to generate your report. Please check the browser console for details.', 'bot');
+        }
+    });
+
+    
+        try {
+            console.log('Attempting to show chat page');
+            document.getElementById('fallback-content').classList.add('hidden');
+            document.getElementById('chat-page').classList.add('visible');
+            document.getElementById('chat-page').classList.remove('hidden');
+            console.log('Chat page shown successfully');
+
+            function scrollToBottom() {
+                const chatWindow = document.getElementById('chat-window');
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+
+            scrollToBottom();
+
+            // Sidebar Toggle Logic
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const historyPanel = document.getElementById('history-panel');
+            const chatMainContent = document.getElementById('chat-main-content');
+
+            // Initialize sidebar state based on screen size
+            let isSidebarCollapsed = window.innerWidth <= 768; // Start collapsed on mobile
+
+            function updateSidebarState() {
+                if (isSidebarCollapsed) {
+                    historyPanel.classList.add('collapsed');
+                    sidebarToggle.classList.add('collapsed');
+                    chatMainContent.classList.add('sidebar-collapsed');
+                } else {
+                    historyPanel.classList.remove('collapsed');
+                    sidebarToggle.classList.remove('collapsed');
+                    chatMainContent.classList.remove('sidebar-collapsed');
+                }
+            }
+
+            // Set initial state
+            updateSidebarState();
+
+            // Toggle on button click
+            sidebarToggle.addEventListener('click', () => {
+                isSidebarCollapsed = !isSidebarCollapsed;
+                updateSidebarState();
+            });
+
+            // Close sidebar if clicking outside on mobile
+            if (window.innerWidth <= 768) {
+                chatMainContent.addEventListener('click', () => {
+                    if (!isSidebarCollapsed) {
+                        isSidebarCollapsed = true;
+                        updateSidebarState();
+                    }
+                });
+            }
+
+
+            // AI Mode and Disease Type Button Logic
+            const aiModeButtons = document.querySelectorAll('.ai-mode-button');
+            const hiddenAiModeInput = document.getElementById('hidden-ai-mode');
+            const diseaseTypeButtons = document.querySelectorAll('.disease-type-button');
+            const diseaseTypeButtonsContainer = document.getElementById('disease-type-buttons');
+            const hiddenDiseaseTypeInput = document.getElementById('hidden-disease-type');
+            const exampleInputDiv = document.getElementById('example-input');
+            const exampleTextSpan = document.getElementById('example-text');
+            const messageInput = document.querySelector('input[name="message"]');
+
+            function updateFormElements() {
+                const selectedMode = hiddenAiModeInput.value;
+
+                // Reset placeholder
+                messageInput.placeholder = "Enter your message...";
+
+                // Hide disease type buttons by default
+                diseaseTypeButtonsContainer.classList.add('hidden');
+                exampleInputDiv.classList.add('hidden');
+                exampleTextSpan.textContent = ''; // Clear example text
+
+                if (selectedMode === 'disease') {
+                    exampleInputDiv.classList.remove('hidden');
+                    diseaseTypeButtonsContainer.classList.remove('hidden');
+                    updateExampleText(); // Call to update example text for disease
+                    messageInput.placeholder = "Enter parameters (e.g., age: 50, sex: 1, ...)";
+                } else if (selectedMode === 'symptoms') {
+                    exampleInputDiv.classList.remove('hidden');
+                    exampleTextSpan.textContent = 'age: 30, symptoms: fatigue, headache';
+                    messageInput.placeholder = "Enter age and symptoms (e.g., age: 30, symptoms: fever, cough)";
+                } else if (selectedMode === 'mental') {
+                    exampleInputDiv.classList.remove('hidden');
+                    exampleTextSpan.textContent = "I’m feeling stressed, can you help?";
+                    messageInput.placeholder = "Describe how you're feeling...";
+                } else if (selectedMode === 'todo') { // New To-Do mode placeholder/example
+                    exampleInputDiv.classList.remove('hidden');
+                    exampleTextSpan.textContent = "Add todo: Go for a 30-min walk, List todos, Done todo: 1";
+                    messageInput.placeholder = "Enter a to-do command...";
+                }
+                else { // General
+                    messageInput.placeholder = "Ask a general health question (e.g., What are benefits of exercise?)";
+                }
+            }
+
+            function updateExampleText() {
+                const selectedDisease = hiddenDiseaseTypeInput.value;
+                if (selectedDisease === 'diabetes') {
+                    exampleTextSpan.textContent = 'pregnancies: 2, glucose: 120, blood_pressure: 70, skin_thickness: 20, insulin: 0, bmi: 32, diabetes_pedigree_function: 0.5, age: 30';
+                } else if (selectedDisease === 'heart') {
+                    exampleTextSpan.textContent = 'age: 50, sex: 1, cp: 0, trestbps: 120, chol: 200, fbs: 0, restecg: 1, thalach: 150, exang: 0, oldpeak: 1.0, slope: 2, ca: 0, thal: 3';
+                }
+            }
+
+            // Event Listeners for AI Mode Buttons
+            aiModeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    aiModeButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    hiddenAiModeInput.value = button.dataset.mode;
+                    updateFormElements();
+                });
+            });
+
+            // Event Listeners for Disease Type Buttons
+            diseaseTypeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    diseaseTypeButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    hiddenDiseaseTypeInput.value = button.dataset.disease;
+                    updateExampleText();
+                });
+            });
+
+            // Initialize form elements based on current hidden input values (or default)
+            const initialAiMode = hiddenAiModeInput.value || 'general';
+            const initialAiModeButton = document.querySelector(`.ai-mode-button[data-mode="${initialAiMode}"]`);
+            if (initialAiModeButton) {
+                initialAiModeButton.click();
+            } else {
+                document.querySelector('.ai-mode-button[data-mode="general"]').click();
+            }
+
+            const initialDiseaseType = hiddenDiseaseTypeInput.value || 'diabetes';
+            const initialDiseaseTypeButton = document.querySelector(`.disease-type-button[data-disease="${initialDiseaseType}"]`);
+            if (initialDiseaseTypeButton) {
+                initialDiseaseTypeButton.click();
+            } else {
+                if (hiddenAiModeInput.value === 'disease') {
+                    document.querySelector('.disease-type-button[data-disease="diabetes"]').click();
+                }
+            }
+
+
+            // Handle New Chat button click
+            document.getElementById('new-chat').addEventListener('click', function(e) {
+                e.preventDefault();
+                const chatWindow = document.getElementById('chat-window');
+                chatWindow.innerHTML = '<p class="text-gray-400 text-center text-sm italic mt-8 animate__animated animate__fadeIn animate__delay-1s"><i class="fas fa-robot text-indigo-400 mr-2"></i> Hello! How can I assist your health today?!</p>';
+                scrollToBottom();
+                document.getElementById('chat-form').reset();
+                aiModeButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelector('.ai-mode-button[data-mode="general"]').classList.add('active');
+                hiddenAiModeInput.value = 'general';
+                updateFormElements();
+            });
+
+            // --- To-Do List Rendering Function ---
+            function renderTodos(todos) {
+                const todoListUl = document.getElementById('todo-list');
+                todoListUl.innerHTML = ''; // Clear existing todos
+
+                if (todos.length === 0) {
+                    todoListUl.innerHTML = '<li class="text-gray-500 italic p-2 text-sm">No to-dos yet!</li>';
+                    document.getElementById('clear-completed-todos').classList.add('hidden');
+                    return;
+                }
+
+                let hasCompletedTodos = false;
+                todos.forEach(todo => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('todo-item');
+                    if (todo.completed) {
+                        listItem.classList.add('completed');
+                        hasCompletedTodos = true;
+                    }
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('todo-checkbox');
+                    checkbox.checked = todo.completed;
+                    checkbox.dataset.todoId = todo.id; // Store todo ID
+
+                    checkbox.addEventListener('change', async function() {
+                        const todoId = this.dataset.todoId;
+                        const isChecked = this.checked;
+                        try {
+                            const response = await fetch(`/chat/mark_todo_done/${todoId}/`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: JSON.stringify({ completed: isChecked })
+                            });
+                            if (!response.ok) {
+                                throw new Error('Failed to update todo status.');
+                            }
+                            const data = await response.json();
+                            // Re-render all todos after update
+                            renderTodos(data.todos);
+                        } catch (error) {
+                            console.error('Error marking todo:', error);
+                            alert('Failed to update to-do status. Please try again.');
+                            this.checked = !isChecked; // Revert checkbox if error
+                        }
+                    });
+
+                    const todoText = document.createElement('span');
+                    todoText.classList.add('todo-text');
+                    todoText.textContent = todo.task_description;
+
+                    const todoDate = document.createElement('span');
+                    todoDate.classList.add('todo-date');
+                    if (todo.due_date) {
+                        const today = new Date();
+                        const dueDate = new Date(todo.due_date);
+                        dueDate.setHours(0,0,0,0); // Normalize for comparison
+                        today.setHours(0,0,0,0); // Normalize for comparison
+
+                        if (dueDate.getTime() === today.getTime()) {
+                            todoDate.textContent = '(Today)';
+                            todoDate.classList.add('text-yellow-400'); // Highlight due today
+                        } else if (dueDate.getTime() === today.getTime() + (24 * 60 * 60 * 1000)) {
+                             todoDate.textContent = '(Tomorrow)';
+                             todoDate.classList.add('text-green-400');
+                        }
+                        else {
+                            todoDate.textContent = `(${new Date(todo.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`;
+                        }
+                    }
+
+                    listItem.appendChild(checkbox);
+                    listItem.appendChild(todoText);
+                    listItem.appendChild(todoDate);
+                    todoListUl.appendChild(listItem);
+                });
+
+                if (hasCompletedTodos) {
+                    document.getElementById('clear-completed-todos').classList.remove('hidden');
+                } else {
+                    document.getElementById('clear-completed-todos').classList.add('hidden');
+                }
+            }
+
+            // Initial render of todos on page load
+            const initialTodos = JSON.parse('{{ active_todos|safe }}');// Convert Django queryset to JS array
+            renderTodos(initialTodos);
+
+
+            // Event Listener for "Clear Completed" button
+            document.getElementById('clear-completed-todos').addEventListener('click', async function() {
+                if (!confirm('Are you sure you want to clear all completed tasks?')) {
+                    return;
+                }
+                try {
+                    const response = await fetch('/chat/clear_completed_todos/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to clear completed todos.');
+                    }
+                    const data = await response.json();
+                    renderTodos(data.todos); // Re-render with updated list
+                } catch (error) {
+                    console.error('Error clearing todos:', error);
+                    alert('Failed to clear completed to-dos. Please try again.');
+                }
+            });
+
+
+            // Handle form submission with AJAX
+            document.getElementById('chat-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const form = e.target;
+                const formData = new FormData(form);
+                const chatWindow = document.getElementById('chat-window');
+
+                if (chatWindow.querySelector('p.italic')) {
+                    chatWindow.innerHTML = '';
+                }
+
+                const userMessage = formData.get('message');
+                const now = new Date();
+                const timestamp = now.getFullYear() + '-' +
+                                  String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                                  String(now.getDate()).padStart(2, '0') + ' ' +
+                                  String(now.getHours()).padStart(2, '0') + ':' +
+                                  String(now.getMinutes()).padStart(2, '0');
+
+                chatWindow.innerHTML += `
+                    <div class="flex justify-end">
+                        <div class="chat-bubble-user ml-auto animate__animated animate__fadeInRight animate__faster">
+                            <p class="font-medium mb-0.5 p-3">${userMessage}</p>
+                            <small class="block text-right text-xs text-indigo-200 mt-1 pr-3 pb-3">
+                                <span class="pl-3">${timestamp}</span>
+                            </small>
+                        </div>
+                    </div>
+                `;
+                scrollToBottom();
+                form.reset();
+
+                const loadingBubble = document.createElement('div');
+                loadingBubble.classList.add('flex', 'justify-start');
+                loadingBubble.innerHTML = `
+                    <div class="chat-bubble-curo mr-auto animate__animated animate__fadeInLeft animate__faster">
+                        <p class="font-medium mb-0.5 flex items-center p-3">Curo is typing<span class="ml-1 flex">
+                            <span class="animate-pulse-dots" style="animation-delay: 0s;">.</span>
+                            <span class="animate-pulse-dots" style="animation-delay: 0.2s;">.</span>
+                            <span class="animate-pulse-dots" style="animation-delay: 0.4s;">.</span>
+                        </span></p>
+                        <small class="block text-right text-xs text-gray-500 mt-1 pr-3 pb-3">
+                            <span class="pl-3">${timestamp}</span>
+                        </small>
+                    </div>
+                `;
+                chatWindow.appendChild(loadingBubble);
+                scrollToBottom();
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || 'Server error');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loadingBubble.remove();
+                    chatWindow.innerHTML += `
+                        <div class="flex justify-start">
+                            <div class="chat-bubble-curo mr-auto animate__animated animate__fadeInLeft animate__faster">
+                                <p class="font-medium mb-0.5 p-3">Curo: ${data.bot_response}</p>
+                                <small class="block text-right text-xs text-gray-500 mt-1 pr-3 pb-3">
+                                    <span class="pl-3">${timestamp}</span>
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                    scrollToBottom();
+                    updateFormElements();
+                    if (data.todos) { // Check if todos data is returned
+                        renderTodos(data.todos); // Update the to-do list
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingBubble.remove();
+                    chatWindow.innerHTML += `
+                        <div class="flex justify-start">
+                            <div class="chat-bubble-curo bg-red-800 mr-auto animate__animated animate__shakeX">
+                                <p class="font-medium mb-0.5 text-red-200 p-3">Error: ${error.message || 'Could not get response from Curo. Please try again.'}</p>
+                                <small class="block text-right text-xs text-red-300 mt-1 pr-3 pb-3">
+                                    <span class="pl-3">${timestamp}</span>
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                    scrollToBottom();
+                });
+            });
+        }catch (error) {
+            console.error('Error in chat page script:', error);
+        }
+
+
+function setupAddTodoButton() {
+    const addTodoBtn = document.getElementById('addTodoPromptBtn');
+    const chatInput = document.getElementById('chat_input'); // Assuming your chat input has this ID
+
+    if (addTodoBtn && chatInput) {
+        addTodoBtn.addEventListener('click', () => {
+            chatInput.value = 'Add todo: '; // Set the value of the chat input
+            chatInput.focus(); // Give focus to the chat input so the user can start typing
+        });
+    }
+}
+
+// Ensure the function runs after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', setupAddTodoButton);
+
+// If your chat interface is dynamically loaded or re-rendered,
+// you might need to call setupAddTodoButton() again after updates.
+// For example, if you completely replace the #chat-container HTML,
+// you'd call this function after the new HTML is in place.
+    </script>
+</body>
+</html>

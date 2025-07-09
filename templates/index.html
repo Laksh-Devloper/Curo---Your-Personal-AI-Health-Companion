@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curo - Health Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        // Custom dark theme colors
+                        'space-dark': '#0A0A0A',
+                        'charcoal': '#1A1A1A',
+                        'deep-slate': '#2A2A2A',
+                        'light-grey': '#B0B0B0',
+                        'off-white': '#E0E0E0',
+                        'accent-purple': '#8B5CF6', // Retaining a touch of the original purple
+                        'accent-cyan': '#06B6D4',   // Retaining a touch of the original cyan
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        // 'glow' animation updated for a darker theme, more subtle
+                        'subtle-glow': 'subtle-glow 3s ease-in-out infinite alternate', 
+                        'slideUp': 'slideUp 0.8s ease-out',
+                        'fadeIn': 'fadeIn 1s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    backgroundImage: {
+                        // Adjusted gradients for darker theme
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+                        'gradient-dark-primary': 'linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%)',
+                        'gradient-dark-accent': 'linear-gradient(45deg, #8B5CF6, #06B6D4)', // Original accent gradient
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); } /* Slightly less dramatic float */
+        }
+        @keyframes subtle-glow {
+            from { box-shadow: 0 0 10px rgba(139, 92, 246, 0.2); }
+            to { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); } /* Less translateY for minimalism */
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        .glass {
+            /* Adjusted for dark theme */
+            background: rgba(26, 26, 26, 0.6); /* Darker, slightly more opaque */
+            backdrop-filter: blur(15px); /* Slightly less blur */
+            border: 1px solid rgba(70, 70, 70, 0.3); /* Darker border */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); /* More subtle shadow */
+        }
+        .text-gradient {
+            background: linear-gradient(45deg, #8B5CF6, #06B6D4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        /* Primary background now uses custom gradient */
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+        }
+        /* Secondary gradient (for buttons/icons) remains vibrant but used sparingly */
+        .bg-gradient-secondary {
+            background: linear-gradient(45deg, #8B5CF6, #06B6D4);
+        }
+        /* Tertiary gradient (for smaller accents) */
+        .bg-gradient-tertiary {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6); /* Keeping a blue-purple accent */
+        }
+        .hover-3d {
+            transition: all 0.3s ease;
+        }
+        .hover-3d:hover {
+            transform: translateY(-8px) rotateX(2deg); /* Less dramatic 3D hover */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3); /* Darker, more subtle shadow */
+        }
+        .text-off-white {
+            color: #E0E0E0; /* Consistent off-white for main text */
+        }
+        .text-light-grey {
+            color: #B0B0B0; /* Consistent light grey for secondary text */
+        }
+    </style>
+</head>
+<body class="min-h-screen font-poppins bg-gradient-dark-primary text-off-white overflow-x-hidden">
+    <canvas id="bg-canvas"></canvas>
+    
+    <header class="fixed top-0 w-full z-50 glass">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 class="text-4xl font-bold text-gradient animate-subtle-glow">Curo</h1>
+            <a href="{% url 'profile' %}" class="px-6 py-3 bg-gradient-dark-accent text-white font-semibold rounded-full hover:scale-105 transform transition-all duration-300 shadow-lg hover:shadow-xl">
+                Profile
+            </a>
+        </div>
+    </header>
+
+    <section class="min-h-screen flex items-center justify-center px-4 pt-20">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-8 animate-slideUp">
+                <div class="space-y-4">
+                    <h1 class="text-5xl lg:text-7xl font-bold leading-tight">
+                        <span class="block text-gradient">Your Personal</span>
+                        <span class="block text-off-white">Health Companion</span>
+                    </h1>
+                    <p class="text-2xl lg:text-3xl font-light text-light-grey italic">
+                        "Detect early, act fast, live better"
+                    </p>
+                    <p class="text-lg lg:text-xl text-light-grey max-w-lg">
+                        Track symptoms, get AI-powered insights, and improve your well-being with Curo.
+                    </p>
+                </div>
+                
+                <a href="{% url 'chat_room' %}" 
+                   class="inline-block px-8 py-4 bg-gradient-dark-accent text-white font-bold text-lg rounded-full hover:scale-105 transform transition-all duration-300 shadow-2xl hover:shadow-purple-700/50 animate-subtle-glow">
+                    Start Health Chat
+                </a>
+            </div>
+            
+            <div class="relative flex justify-center items-center">
+                <div class="w-80 h-80 lg:w-96 lg:h-96 relative">
+                    <div class="absolute inset-0 animate-float">
+                      
+                               <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.98/build/spline-viewer.js"></script>
+                               <spline-viewer loading-anim-type="spinner-small-dark" url="https://prod.spline.design/SuqiTLd3gj01pbrL/scene.splinecode"></spline-viewer>
+                        </div>
+                    </div>
+                    
+                    <div class="absolute -top-8 -right-8 w-16 h-16 bg-accent-cyan rounded-full animate-bounce opacity-40 shadow-lg shadow-cyan-500/20"></div>
+                    <div class="absolute -bottom-8 -left-8 w-12 h-12 bg-accent-purple rounded-full animate-pulse-slow opacity-30 shadow-lg shadow-purple-500/20"></div>
+                    <div class="absolute top-1/2 -left-12 w-8 h-8 bg-gradient-tertiary rounded-full animate-ping opacity-50 shadow-lg shadow-blue-500/20"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-4">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="glass rounded-3xl p-12 mx-4 hover-3d shadow-2xl shadow-charcoal/50">
+                <h3 class="text-4xl font-bold text-off-white mb-8">About Curo</h3>
+                <p class="text-xl text-light-grey max-w-4xl mx-auto leading-relaxed">
+                    Curo uses advanced AI technology to analyze symptoms, provide health insights, 
+                    and offer personalized recommendations. Whether you're tracking physical symptoms 
+                    or seeking mental health support, Curo is here to help you make informed decisions.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <h3 class="text-4xl font-bold text-off-white text-center mb-16">Features</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="glass rounded-3xl p-8 hover-3d group">
+                    <div class="w-16 h-16 bg-gradient-dark-accent rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold text-off-white mb-4">Symptoms Predictor</h4>
+                    <p class="text-light-grey text-lg">
+                        Enter your symptoms, age, and weight to get potential condition predictions.
+                    </p>
+                </div>
+                
+                <div class="glass rounded-3xl p-8 hover-3d group">
+                    <div class="w-16 h-16 bg-gradient-dark-accent rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold text-off-white mb-4">Mental Health Assistant</h4>
+                    <p class="text-light-grey text-lg">
+                        Get support and guidance for mental health concerns with our AI assistant.
+                    </p>
+                </div>
+                
+                <div class="glass rounded-3xl p-8 hover-3d group md:col-span-2 lg:col-span-1">
+                    <div class="w-16 h-16 bg-gradient-dark-accent rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold text-off-white mb-4">Disease Predictor</h4>
+                    <p class="text-light-grey text-lg">
+                        Analyze symptoms to identify possible diseases and get recommendations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="glass rounded-3xl p-8 text-center">
+                <p class="text-light-grey text-lg">
+                    © 2025 Curo. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Grid Matrix Effect
+        let scene, camera, renderer, gridLines = [];
+        let mouseX = 0, mouseY = 0;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Create grid matrix
+            createGridMatrix();
+            
+            camera.position.z = 30;
+        }
+
+        function createGridMatrix() {
+            const gridSize = 50;
+            const lineCount = 20; // Number of lines in each direction
+            
+            // Vertical lines
+            for (let i = 0; i < lineCount; i++) {
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(6);
+                
+                const x = (i - lineCount/2) * 4;
+                positions[0] = x; positions[1] = -gridSize; positions[2] = 0;
+                positions[3] = x; positions[4] = gridSize; positions[5] = 0;
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                
+                const material = new THREE.LineBasicMaterial({
+                    // Toned down colors for dark theme, subtle blue/purple hues
+                    color: new THREE.Color(0.2 + Math.random() * 0.1, 0.3 + Math.random() * 0.1, 0.5 + Math.random() * 0.2), 
+                    transparent: true,
+                    opacity: 0.05 + Math.random() * 0.1 // Much lower base opacity for subtle look
+                });
+                
+                const line = new THREE.Line(geometry, material);
+                line.userData = {
+                    originalOpacity: material.opacity,
+                    pulseSpeed: 0.01 + Math.random() * 0.02, // Slower pulse
+                    pulseOffset: Math.random() * Math.PI * 2
+                };
+                
+                scene.add(line);
+                gridLines.push(line);
+            }
+            
+            // Horizontal lines
+            for (let i = 0; i < lineCount; i++) {
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(6);
+                
+                const y = (i - lineCount/2) * 4;
+                positions[0] = -gridSize; positions[1] = y; positions[2] = 0;
+                positions[3] = gridSize; positions[4] = y; positions[5] = 0;
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                
+                const material = new THREE.LineBasicMaterial({
+                    // Toned down colors for dark theme
+                    color: new THREE.Color(0.3 + Math.random() * 0.1, 0.2 + Math.random() * 0.1, 0.6 + Math.random() * 0.2), 
+                    transparent: true,
+                    opacity: 0.05 + Math.random() * 0.1 // Much lower base opacity
+                });
+                
+                const line = new THREE.Line(geometry, material);
+                line.userData = {
+                    originalOpacity: material.opacity,
+                    pulseSpeed: 0.01 + Math.random() * 0.02, // Slower pulse
+                    pulseOffset: Math.random() * Math.PI * 2
+                };
+                
+                scene.add(line);
+                gridLines.push(line);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.001;
+            
+            // Animate grid lines with pulsing effect
+            gridLines.forEach((line) => {
+                const pulse = Math.sin(time * line.userData.pulseSpeed + line.userData.pulseOffset);
+                line.material.opacity = line.userData.originalOpacity + pulse * 0.05; // More subtle pulse
+                
+                // Mouse interaction - brighten nearby lines (more subtle influence)
+                const lineCenter = new THREE.Vector3().copy(line.geometry.attributes.position.array.slice(0, 3)); // Get first point as approximation
+                const distToMouse = lineCenter.distanceTo(new THREE.Vector3(mouseX * 0.05, mouseY * 0.05, 0)); // Map mouse to scene coords
+                const mouseInfluence = Math.max(0, 1 - distToMouse * 0.02); // Toned down influence
+                line.material.opacity += mouseInfluence * 0.2; // Slightly more brightness on hover
+                
+                // Random bright flashes (less frequent, more subtle)
+                if (Math.random() < 0.0005) { 
+                    line.material.opacity = 0.5;
+                }
+            });
+
+            // Subtle grid rotation
+            scene.rotation.z += 0.0002; // Slower rotation
+            scene.rotation.x = mouseY * 0.00005; // Even more subtle mouse influence
+            scene.rotation.y = mouseX * 0.00005;
+
+            renderer.render(scene, camera);
+        }
+
+        // Mouse tracking for interaction
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - window.innerWidth / 2);
+            mouseY = (event.clientY - window.innerHeight / 2);
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Smooth scrolling for links (optional, not strictly theme-related but good UX)
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Initialize matrix grid
+        init();
+        animate();
+
+        // Add scroll animations for feature cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'slideUp 0.8s ease-out forwards';
+                    observer.unobserve(entry.target); // Optional: stop observing once animated
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.hover-3d').forEach(el => {
+            el.style.opacity = '0'; // Hide elements initially for the slideUp animation
+            observer.observe(el);
+        });
+        
+        // Ensure header and hero text are visible immediately
+        document.querySelector('header').style.animation = 'fadeIn 1s ease-out forwards';
+        document.querySelector('.hero-section-text').style.animation = 'slideUp 0.8s ease-out forwards';
+        
+    </script>
+</body>
+</html>

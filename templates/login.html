@@ -1,0 +1,292 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curo - Login / Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'health_assistant/css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'space-dark': '#0A0A0A',
+                        'charcoal': '#1A1A1A',
+                        'deep-slate': '#2A2A2A',
+                        'light-grey': '#B0B0B0',
+                        'off-white': '#E0E0E0',
+                        'accent-purple': '#8B5CF6', 
+                        'accent-cyan': '#06B6D4',   
+                    },
+                    backgroundImage: {
+                        'gradient-dark-primary': 'linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%)',
+                        'gradient-dark-accent': 'linear-gradient(45deg, #8B5CF6, #06B6D4)', 
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Keyframes for the blob animation */
+        @keyframes blob {
+            0% {
+                transform: translate(0px, 0px) scale(1);
+            }
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+            100% {
+                transform: translate(0px, 0px) scale(1);
+            }
+        }
+
+        /* Custom CSS for glass effect and subtle 3D - Adjusted for dark theme */
+        .glass-box {
+            background: rgba(26, 26, 26, 0.6); /* Darker, slightly more opaque */
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); /* Darker shadow */
+            backdrop-filter: blur(15px); /* Slightly more blur than index but still minimal */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(70, 70, 70, 0.3); /* Darker border */
+            transform: perspective(1000px) rotateY(0deg) rotateX(0deg); 
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .glass-box:hover {
+            transform: perspective(1000px) rotateY(1deg) rotateX(1deg) scale(1.005); /* Even more subtle rotation and scale on hover */
+            box-shadow: 0 6px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-page {
+            background: linear-gradient(135deg, #0A0A0A, #1A1A1A); /* Dark background matching main theme */
+        }
+
+        .glass-input {
+            background: rgba(40, 40, 40, 0.7); /* Darker input background */
+            color: #E0E0E0; /* Light text color for input */
+            border: 1px solid rgba(70, 70, 70, 0.4); /* Darker input border */
+            transition: all 0.3s ease;
+        }
+
+        .glass-input::placeholder { /* Placeholder text color */
+            color: #B0B0B0;
+        }
+
+        .glass-input:focus {
+            background: rgba(50, 50, 50, 0.9); /* Slightly lighter on focus */
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3); /* Accent color focus ring */
+        }
+
+        .glass-button {
+            background: linear-gradient(45deg, #8B5CF6, #06B6D4); /* Using the accent gradient */
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); /* Shadow matching accent */
+            transition: all 0.3s ease;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-1px); /* More subtle lift button on hover */
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        }
+
+        .google-login-btn {
+            background-color: #333333; /* Darker grey for Google button */
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(70, 70, 70, 0.4); /* subtle border */
+        }
+
+        .google-login-btn:hover {
+            background-color: #444444;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Text colors for dark theme */
+        .text-dark-label {
+            color: #E0E0E0; /* Off-white for labels */
+        }
+
+        .text-dark-link {
+            color: #06B6D4; /* Accent cyan for links */
+        }
+
+        .tab-button {
+            color: #B0B0B0; /* Light grey for inactive tabs */
+            border-bottom-color: transparent;
+        }
+
+        .tab-button.active {
+            color: #8B5CF6; /* Accent purple for active tab */
+            border-bottom-color: #8B5CF6;
+            font-weight: 700;
+        }
+
+        /* Blob animation delays */
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+
+        /* Error message styling */
+        .error-message {
+            color: #FECACA; /* Light red */
+            background-color: #7F1D1D; /* Darker red background */
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            animation: shakeX 0.5s;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-[Poppins] bg-gradient-dark-primary text-off-white">
+    <div class="login-page flex flex-col items-center justify-center h-screen animate__animated animate__fadeIn">
+        <div class="glass-box p-8 max-w-md w-full mx-4 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-24 h-24 bg-accent-purple rounded-full mix-blend-screen filter blur-xl opacity-40 animate-blob animation-delay-2000"></div>
+            <div class="absolute top-0 right-0 w-24 h-24 bg-accent-cyan rounded-full mix-blend-screen filter blur-xl opacity-40 animate-blob animation-delay-4000"></div>
+            <div class="absolute bottom-0 left-1/4 w-24 h-24 bg-accent-purple rounded-full mix-blend-screen filter blur-xl opacity-40 animate-blob"></div>
+
+            <div class="flex justify-center mb-6 z-10 relative">
+                <button id="login-tab" class="px-6 py-3 font-bold border-b-2 transition-all duration-300 transform hover:scale-105 tab-button active">Login</button>
+                <button id="signup-tab" class="px-6 py-3 font-semibold transition-all duration-300 transform hover:scale-105 tab-button">Sign Up</button>
+            </div>
+            <form id="login-form" method="POST" action="{% url 'login' %}" class="space-y-5 z-10 relative">
+                {% csrf_token %}
+                {% if form.errors %}
+                    <p class="error-message animate__animated animate__shakeX">Your username or password was incorrect.</p>
+                {% endif %}
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-dark-label mb-1">Email or Username</label>
+                    <input type="text" name="username" id="login-email" class="glass-input w-full p-3 border rounded-lg focus:outline-none" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-dark-label mb-1">Password</label>
+                    <input type="password" name="password" id="login-password" class="glass-input w-full p-3 border rounded-lg focus:outline-none" required>
+                </div>
+                <button type="submit" class="glass-button w-full text-white py-3 rounded-lg font-bold">Login</button>
+                <a href="{% url 'google_login' %}" class="w-full block mt-2 text-center py-3 rounded-lg google-login-btn flex items-center justify-center space-x-2">
+                    <i class="fab fa-google text-lg"></i> <span>Login with Google</span>
+                </a>
+                <a id="forgot-password" href="#" class="text-sm text-dark-link hover:underline block text-center mt-3">Forgot Password?</a>
+            </form>
+            <form id="signup-form" class="hidden space-y-5 z-10 relative" method="POST" action="{% url 'signup' %}">
+                {% csrf_token %}
+                {% if signup_errors %}
+                    <p class="error-message animate__animated animate__shakeX">{{ signup_errors }}</p>
+                {% endif %}
+                <div>
+                    <label for="signup-name" class="block text-sm font-medium text-dark-label mb-1">Name</label>
+                    <input type="text" name="name" id="signup-name" class="glass-input w-full p-3 border rounded-lg focus:outline-none" required>
+                </div>
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-dark-label mb-1">Email</label>
+                    <input type="email" name="email" id="signup-email" class="glass-input w-full p-3 border rounded-lg focus:outline-none" required>
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-dark-label mb-1">Password</label>
+                    <input type="password" name="password" id="signup-password" class="glass-input w-full p-3 border rounded-lg focus:outline-none" required>
+                </div>
+                <button type="submit" class="glass-button w-full text-white py-3 rounded-lg font-bold">Sign Up</button>
+                <a href="{% url 'google_login' %}" class="w-full block mt-2 text-center py-3 rounded-lg google-login-btn flex items-center justify-center space-x-2">
+                    <i class="fab fa-google text-lg"></i> <span>Sign Up with Google</span>
+                </a>
+            </form>
+        </div>
+    </div>
+    <div id="forgot-password-popup" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center animate__animated animate__fadeIn">
+        <div class="glass-box p-6 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0" id="forgot-password-modal-content">
+            <h3 class="text-2xl font-bold text-off-white mb-4 text-center">Reset Password</h3>
+            <form id="forgot-password-form" class="space-y-4" method="POST" action="">
+                {% csrf_token %}
+                <div>
+                    <label for="reset-email" class="block text-sm font-medium text-dark-label mb-1">Email</label>
+                    <input type="email" name="email" id="reset-email" class="glass-input w-full p-2 border rounded-lg focus:ring-2 focus:ring-accent-purple focus:outline-none" required>
+                </div>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" id="cancel-forgot-password" class="px-5 py-2 bg-deep-slate text-off-white rounded-lg hover:bg-charcoal transition duration-300 transform hover:scale-105">Cancel</button>
+                    <button type="submit" class="px-5 py-2 glass-button text-white rounded-lg transition duration-300 transform hover:scale-105">Send Reset Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
+    <script src="{% static 'health_assistant/js/script.js' %}"></script>
+    <script>
+        // Tab Switching
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+
+        // Function to set active tab styles
+        function setActiveTab(activeTab, inactiveTab) {
+            activeTab.classList.add('active');
+            activeTab.classList.remove('tab-button');
+            inactiveTab.classList.remove('active');
+            inactiveTab.classList.add('tab-button');
+        }
+
+        loginTab.addEventListener('click', () => {
+            setActiveTab(loginTab, signupTab);
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+        });
+
+        signupTab.addEventListener('click', () => {
+            setActiveTab(signupTab, loginTab);
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+
+        // Initialize active tab on page load (e.g., if there are form errors for signup, keep signup tab active)
+  
+        // Forgot Password Popup
+        const modal = document.getElementById('forgot-password-popup');
+        const forgotLink = document.getElementById('forgot-password');
+        const cancelForgotPassword = document.getElementById('cancel-forgot-password');
+        const modalContent = document.getElementById('forgot-password-modal-content');
+
+        forgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+            // Animate in the modal content
+            setTimeout(() => {
+                modalContent.classList.add('scale-100', 'opacity-100');
+                modalContent.classList.remove('scale-95', 'opacity-0');
+            }, 50); // Small delay to ensure hidden is removed first
+        });
+
+        cancelForgotPassword.addEventListener('click', () => {
+            // Animate out the modal content
+            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Wait for animation to finish before hiding
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                // Animate out the modal content
+                modalContent.classList.add('scale-95', 'opacity-0');
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300); // Wait for animation to finish before hiding
+            }
+        });
+    </script>
+</body>
+</html>
