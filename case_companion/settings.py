@@ -7,15 +7,15 @@ from django.core.mail.backends.smtp import EmailBackend as DefaultEmailBackend
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-u8ywwz9jn)m+vcpg#3w42_wv1s7r+a%ju5_)2efpm$mohc8snf'
+SECRET_KEY = ''
 DEBUG = True
 ALLOWED_HOSTS = []
 
 # settings.py (add at the bottom)
 # settings.py (replace the old TWILIO stuff at the bottom)
-TWILIO_ACCOUNT_SID = 'ACb1f4150e01a55f00afb992b1bc3d32b1'
-TWILIO_AUTH_TOKEN = 'b744b36338f8e1523254125f6c05ea82'
-TWILIO_VERIFY_SERVICE_SID = 'VAabeced161c75913087a58e434bfbaafb'
+TWILIO_ACCOUNT_SID = ''
+TWILIO_AUTH_TOKEN = ''
+TWILIO_VERIFY_SERVICE_SID = ''
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -131,12 +131,12 @@ EMAIL_BACKEND = 'case_companion.settings.CustomEmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'casecompanion07@gmail.com'
-EMAIL_HOST_PASSWORD = 'mjup jigr bxqo wiup'  # Replace with your Gmail App Password
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''  # Replace with your Gmail App Password
 EMAIL_TIMEOUT = 10  # Add timeout for stability
 
 # Google Sign-In settings
-GOOGLE_OAUTH_CLIENT_ID = "689733937221-f9qtbv229ej2i399ajmstn1rggjukgkt.apps.googleusercontent.com"
+GOOGLE_OAUTH_CLIENT_ID = ""
 if not GOOGLE_OAUTH_CLIENT_ID:
     raise ValueError("GOOGLE_OAUTH_CLIENT_ID missing in .env")
 
